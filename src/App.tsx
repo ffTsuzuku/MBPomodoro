@@ -3,15 +3,18 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import { Button, Flex, Input } from '@chakra-ui/react'
+import { CSSObject } from '@emotion/react'
 
 function App() {
-    const [userInput, setUserInput] = useState<string>()
+    const [userInput, setUserInput] = useState<string>('')
+    const [timer, setTimer] = useState<number>()
     const [countdown, setCountDown] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
     const [timerStarted, setTimerStarted] = useState(false)
 
     const timerInterval = useRef<number>()
+    const timerRef = useRef<number>()
 
     const validateAndSetTime = (time: string) => {
         // remove non numbers
@@ -24,6 +27,16 @@ function App() {
 
     const formatTime = () => {
         if (!userInput) return '00h 00m 00s'
+
+        if (timerInterval.current && timerRef.current) {
+            let seconds = timerRef.current
+            const hours = Math.floor(seconds / 3600) // Calculate hours
+            seconds %= 3600 // Get remaining seconds
+            const minutes = Math.floor(seconds / 60) // Calculate minutes
+            seconds %= 60 // Get remaining seconds
+
+            return `${hours}h ${minutes}m ${seconds}s`
+        }
         const time = userInput.padStart(6, '0')
         const hours = time.slice(0, 2) || '00'
         const mins = time.slice(2, 4) || '00'
@@ -37,7 +50,11 @@ function App() {
         return `${hoursAsNumber}h ${minsAsNumber}m ${secsAsNumber}s`
     }
 
-    const parseUserInputIntoNumbers = () => {
+    const parseUserInputIntoNumbers = (): [
+        number,
+        number,
+        number
+    ] => {
         if (!userInput) return [0, 0, 0]
         const time = userInput.padStart(6, '0')
 
@@ -59,9 +76,19 @@ function App() {
     }
 
     const startTime = () => {
+        const [hours, minutes, seconds] = parseUserInputIntoNumbers()
+        setTimer(hours * 60 * 60 + minutes * 60 + seconds)
+        timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
         setTimerStarted(true)
 
-        const handler = setInterval(() => console.log('tick tok'))
+        const handler = setInterval(() => {
+            if (timerRef.current === 0 || !timerRef.current) {
+                clearInterval(handler)
+                return
+            }
+            setTimer(timerRef.current - 1)
+            timerRef.current--
+        }, 1000)
         timerInterval.current = handler
     }
 
@@ -69,6 +96,18 @@ function App() {
         const handler = timerInterval.current
         clearInterval(handler)
         setTimerStarted(false)
+    }
+
+    let timerBtnOnClick = startTime
+    const timerBtnStyles: CSSObject = {}
+    if (timerStarted) {
+        timerBtnOnClick = endTime
+    }
+    if (formatTime() == '00h 00m 00s') {
+        timerBtnOnClick = endTime
+        timerBtnStyles.backgroundColor = 'gray'
+        timerBtnStyles.cursor = 'default'
+        timerBtnStyles.color = 'lightgray'
     }
     return (
         <div className='App'>
@@ -87,6 +126,7 @@ function App() {
                     shadow={'2xl'}
                     borderRadius={'10px'}
                     bgColor={'pink.100'}
+                    wrap={'wrap'}
                 >
                     <Flex
                         alignContent={'center'}
@@ -123,16 +163,15 @@ function App() {
                             </span>
                         </Flex>
                     </Flex>
+                    <Flex w={'100%'} justifyContent={'center'}>
+                        <Button
+                            onClick={timerBtnOnClick}
+                            style={timerBtnStyles}
+                        >
+                            {timerStarted ? 'Stop' : 'Start'}
+                        </Button>
+                    </Flex>
                 </Flex>
-                <Button
-                    onClick={
-                        timerStarted
-                            ? () => endTime()
-                            : () => startTime()
-                    }
-                >
-                    {timerStarted ? 'Stop' : 'Start'}
-                </Button>
             </Flex>
         </div>
     )
