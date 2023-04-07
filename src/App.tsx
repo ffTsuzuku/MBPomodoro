@@ -1,41 +1,75 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import { Flex, Input } from '@chakra-ui/react'
+import { Button, Flex, Input } from '@chakra-ui/react'
 
 function App() {
-    const [timer, setTimer] = useState<string>('')
+    const [userInput, setUserInput] = useState<string>()
+    const [countdown, setCountDown] = useState<number>()
+    const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
+    const [timerStarted, setTimerStarted] = useState(false)
+
+    const timerInterval = useRef<number>()
 
     const validateAndSetTime = (time: string) => {
-        if (time.length > 6) {
-            time = time.charAt(time.length - 1)
-        }
+        // remove non numbers
+        time = time.replace(/[^0-9]/g, '')
+        // Cap it to 6 chars. The 7th char triggers reset.
+        time = time.slice(0, 6)
 
-        setTimer(time)
+        setUserInput(time)
     }
 
     const formatTime = () => {
-        let hours = '00'
-        let minutes = '00'
-        let seconds = '00'
-        if (timer.length <= 2 && timer.length !== 0) {
-            seconds = `${timer[0] ?? '0'}${timer[1] ?? '0'}`
-            console.log(seconds, 'sec')
-            console.log('timer', timer)
-        } else if (timer.length > 2 && timer.length <= 4) {
-            seconds = `${timer[0] ?? '0'}${timer[1] ?? '0'}`
-            minutes = `${timer[2] ?? '0'}${timer[3] ?? '0'}`
-        } else if (timer.length > 4 && timer.length <= 6) {
-            seconds = `${timer[0] ?? '0'}${timer[1] ?? '0'}`
-            minutes = `${timer[2] ?? '0'}${timer[3] ?? '0'}`
-            hours = `${timer[4] ?? '0'}${timer[5] ?? '0'}`
-        }
-        console.log(`${hours}H ${minutes}M ${seconds}S`)
-        return `${hours}H ${minutes}M ${seconds}S`
+        if (!userInput) return '00h 00m 00s'
+        const time = userInput.padStart(6, '0')
+        const hours = time.slice(0, 2) || '00'
+        const mins = time.slice(2, 4) || '00'
+        const secs = time.slice(4, 6) || '00'
+
+        const [hoursAsNumber, minsAsNumber, secsAsNumber] =
+            parseUserInputIntoNumbers()
+
+        if (timerFocused) return `${hours}h ${mins}m ${secs}s`
+
+        return `${hoursAsNumber}h ${minsAsNumber}m ${secsAsNumber}s`
     }
 
+    const parseUserInputIntoNumbers = () => {
+        if (!userInput) return [0, 0, 0]
+        const time = userInput.padStart(6, '0')
+
+        let secsAsNumber = parseInt(time.slice(4, 6) || '0')
+        let minsAsNumber = parseInt(time.slice(2, 4) || '0')
+        let hoursAsNumber = parseInt(time.slice(0, 2) || '0')
+
+        const secsOverflow = Math.floor(secsAsNumber / 60)
+        const secsRemainder = secsAsNumber % 60
+        secsAsNumber = secsRemainder
+        minsAsNumber = minsAsNumber + secsOverflow
+
+        const minsOverflow = Math.floor(minsAsNumber / 60)
+        const minsRemainder = minsAsNumber % 60
+        minsAsNumber = minsRemainder
+        hoursAsNumber = hoursAsNumber + minsOverflow
+
+        return [hoursAsNumber, minsAsNumber, secsAsNumber]
+    }
+
+    const startTime = () => {
+        setTimerStarted(true)
+
+        const handler = setInterval(() => console.log('tick tok'))
+        timerInterval.current = handler
+    }
+
+    const endTime = () => {
+        const handler = timerInterval.current
+        clearInterval(handler)
+        setTimerStarted(false)
+    }
     return (
         <div className='App'>
             <Flex
@@ -55,31 +89,50 @@ function App() {
                     bgColor={'pink.100'}
                 >
                     <Flex
+                        alignContent={'center'}
                         justifyContent={'center'}
                         alignItems={'center'}
                         border={'10px solid white'}
                         w={'70%'}
                         h={'70%'}
                         borderRadius={'10px'}
+                        wrap='wrap'
                     >
                         <Input
-                            onFocus={() => {
-                                setTimerFocused(true)
-                            }}
+                            onFocus={() => setTimerFocused(true)}
                             onBlur={() => setTimerFocused(false)}
-                            dir={'rtl'}
                             onChange={(e) =>
                                 validateAndSetTime(e.target.value)
                             }
-                            color={'gray.600'}
-                            fontSize={'3em'}
-                            textAlign={'center'}
                             variant='unstyled'
-                            value={formatTime()}
-                            placeholder='00H 00M 00S'
+                            value={userInput}
+                            ref={inputRef}
+                            w={'1px'}
+                            h={'1px'}
                         />
+                        <Flex
+                            w={'100%'}
+                            justifyContent='center'
+                            fontSize={'5xl'}
+                            color={'gray.600'}
+                            onClick={() => inputRef?.current?.focus()}
+                        >
+                            {formatTime()}
+                            <span className='blinkMe'>
+                                {timerFocused ? '|' : ''}
+                            </span>
+                        </Flex>
                     </Flex>
                 </Flex>
+                <Button
+                    onClick={
+                        timerStarted
+                            ? () => endTime()
+                            : () => startTime()
+                    }
+                >
+                    {timerStarted ? 'Stop' : 'Start'}
+                </Button>
             </Flex>
         </div>
     )
