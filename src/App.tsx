@@ -133,17 +133,15 @@ function App() {
         setTimerState(TimerStates.Ended)
     }
 
-    let timerBtnOnClick = startTime
     const timerBtnStyles: CSSObject = {}
     if (formatTime() == '00h 00m 00s') {
-        timerBtnOnClick = endTime
         timerBtnStyles.backgroundColor = 'gray'
         timerBtnStyles.cursor = 'default'
         timerBtnStyles.color = 'lightgray'
     }
     let ButtonsJSX = (
         <Flex w={'100%'} justifyContent={'center'}>
-            <Button onClick={timerBtnOnClick} style={timerBtnStyles}>
+            <Button onClick={startTime} style={timerBtnStyles}>
                 {'Start'}
             </Button>
         </Flex>
