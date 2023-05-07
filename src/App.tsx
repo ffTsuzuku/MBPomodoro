@@ -25,8 +25,8 @@ function App() {
     const validateAndSetTime = (time: string) => {
         // remove non numbers
         time = time.replace(/[^0-9]/g, '')
-        // Cap it to 6 chars. The 7th char triggers reset.
-        time = time.slice(0, 6)
+        // Cap it to 6 chars. The 7th char forces the first to be removed
+        time = time.length === 7 ? time.slice(1, 7) : time.slice(0, 6)
 
         setUserInput(time)
     }
