@@ -6,12 +6,18 @@ import { Button, Flex, Input } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
 
 function App() {
+    enum TimerStates {
+        Started,
+        Paused,
+        Ended,
+    }
     const [userInput, setUserInput] = useState<string>('')
     const [timer, setTimer] = useState<number>()
-    const [countdown, setCountDown] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
-    const [timerStarted, setTimerStarted] = useState(false)
+    const [timerState, setTimerState] = useState<TimerStates>(
+        TimerStates.Ended
+    )
 
     const timerInterval = useRef<number>()
     const timerRef = useRef<number>()
@@ -79,7 +85,7 @@ function App() {
         const [hours, minutes, seconds] = parseUserInputIntoNumbers()
         setTimer(hours * 60 * 60 + minutes * 60 + seconds)
         timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
-        setTimerStarted(true)
+        setTimerState(TimerStates.Started)
 
         const handler = setInterval(() => {
             if (timerRef.current === 0 || !timerRef.current) {
@@ -95,20 +101,77 @@ function App() {
     const endTime = () => {
         const handler = timerInterval.current
         clearInterval(handler)
-        setTimerStarted(false)
+        setTimerState(TimerStates.Ended)
+    }
+
+    const pauseTime = () => {
+        const handler = timerInterval.current
+        clearInterval(handler)
+        setTimerState(TimerStates.Paused)
+    }
+
+    const unPauseTime = () => {
+        setTimerState(TimerStates.Started)
+
+        const handler = setInterval(() => {
+            if (timerRef.current === 0 || !timerRef.current) {
+                clearInterval(handler)
+                return
+            }
+            setTimer(timerRef.current - 1)
+            timerRef.current--
+        }, 1000)
+        timerInterval.current = handler
+    }
+
+    const resetTime = () => {
+        const handler = timerInterval.current
+        clearInterval(handler)
+        const [hours, minutes, seconds] = parseUserInputIntoNumbers()
+        setTimer(hours * 60 * 60 + minutes * 60 + seconds)
+        timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
+        setTimerState(TimerStates.Ended)
     }
 
     let timerBtnOnClick = startTime
     const timerBtnStyles: CSSObject = {}
-    if (timerStarted) {
-        timerBtnOnClick = endTime
-    }
     if (formatTime() == '00h 00m 00s') {
         timerBtnOnClick = endTime
         timerBtnStyles.backgroundColor = 'gray'
         timerBtnStyles.cursor = 'default'
         timerBtnStyles.color = 'lightgray'
     }
+    let ButtonsJSX = (
+        <Flex w={'100%'} justifyContent={'center'}>
+            <Button onClick={timerBtnOnClick} style={timerBtnStyles}>
+                {'Start'}
+            </Button>
+        </Flex>
+    )
+    if (timerState === TimerStates.Started) {
+        ButtonsJSX = (
+            <Flex w={'100%'} justifyContent={'center'}>
+                <Button onClick={pauseTime} style={timerBtnStyles}>
+                    {'Pause'}
+                </Button>
+                <Button onClick={resetTime} style={timerBtnStyles}>
+                    {'Reset'}
+                </Button>
+            </Flex>
+        )
+    } else if (timerState === TimerStates.Paused) {
+        ButtonsJSX = (
+            <Flex w={'100%'} justifyContent={'center'}>
+                <Button onClick={unPauseTime} style={timerBtnStyles}>
+                    {'Resume'}
+                </Button>
+                <Button onClick={resetTime} style={timerBtnStyles}>
+                    {'Reset'}
+                </Button>
+            </Flex>
+        )
+    }
+    console.log({ timerState })
     return (
         <div className='App'>
             <Flex
@@ -163,14 +226,7 @@ function App() {
                             </span>
                         </Flex>
                     </Flex>
-                    <Flex w={'100%'} justifyContent={'center'}>
-                        <Button
-                            onClick={timerBtnOnClick}
-                            style={timerBtnStyles}
-                        >
-                            {timerStarted ? 'Stop' : 'Start'}
-                        </Button>
-                    </Flex>
+                    {ButtonsJSX}
                 </Flex>
             </Flex>
         </div>
