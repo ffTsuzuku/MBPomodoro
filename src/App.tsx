@@ -5,6 +5,10 @@ import './App.css'
 import { Button, Flex, Input } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
 
+import AdvancedAudioPlayer, {
+    PlayerStates,
+} from './utility/advancedAudioPlayer'
+
 function App() {
     enum TimerStates {
         Started,
@@ -15,12 +19,20 @@ function App() {
     const [timer, setTimer] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
-    const [timerState, setTimerState] = useState<TimerStates>(
-        TimerStates.Ended
-    )
+    const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
 
     const timerInterval = useRef<number>()
     const timerRef = useRef<number>()
+    const clockPlayer = useRef<AdvancedAudioPlayer>()
+    const gongSound = useRef<AdvancedAudioPlayer>()
+    const timerStateRef = useRef<TimerStates>(TimerStates.Ended)
+
+    const gongTimestamps = [30]
+
+    const updateTimerState = (state: TimerStates) => {
+        setTimerState(state)
+        timerStateRef.current = state
+    }
 
     const validateAndSetTime = (time: string) => {
         // remove non numbers
@@ -56,11 +68,7 @@ function App() {
         return `${hoursAsNumber}h ${minsAsNumber}m ${secsAsNumber}s`
     }
 
-    const parseUserInputIntoNumbers = (): [
-        number,
-        number,
-        number
-    ] => {
+    const parseUserInputIntoNumbers = (): [number, number, number] => {
         if (!userInput) return [0, 0, 0]
         const time = userInput.padStart(6, '0')
 
@@ -81,56 +89,85 @@ function App() {
         return [hoursAsNumber, minsAsNumber, secsAsNumber]
     }
 
-    const startTime = () => {
+    const pauseAllSFX = () => {
+        console.log('pausing sounds', clockPlayer, gongSound)
+        clockPlayer.current?.pause()
+        gongSound.current?.pause()
+    }
+
+    const resumeAllSFX = () => {
+        if (clockPlayer.current?.state === PlayerStates.Paused) {
+            clockPlayer.current?.play()
+        }
+        if (gongSound.current?.state === PlayerStates.Paused) {
+            gongSound.current?.play()
+        }
+    }
+
+    const playTikTokNoise = () => {
+        if (clockPlayer.current?.state === PlayerStates.Paused) {
+            clockPlayer.current?.play()
+        }
+    }
+
+    const countdownTimerCallback = () => {
+        if (timerRef.current === 0 || !timerRef.current) {
+            endTime()
+            return
+        }
+        setTimer(timerRef.current - 1)
+        timerRef.current--
+    }
+
+    // sets the timer state and its correspondingref to what the user entered.
+    const setTimerToUserInput = () => {
         const [hours, minutes, seconds] = parseUserInputIntoNumbers()
         setTimer(hours * 60 * 60 + minutes * 60 + seconds)
         timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
-        setTimerState(TimerStates.Started)
+    }
 
-        const handler = setInterval(() => {
-            if (timerRef.current === 0 || !timerRef.current) {
-                clearInterval(handler)
-                return
-            }
-            setTimer(timerRef.current - 1)
-            timerRef.current--
-        }, 1000)
+    // logic for begining the timer count down.
+    const startTime = () => {
+        setTimerToUserInput()
+        updateTimerState(TimerStates.Started)
+
+        const handler = setInterval(countdownTimerCallback, 1000)
+        if (clockPlayer.current) {
+            clockPlayer.current.play()
+        }
         timerInterval.current = handler
     }
 
+    // Logic for when the timer drops to 0.
     const endTime = () => {
         const handler = timerInterval.current
         clearInterval(handler)
-        setTimerState(TimerStates.Ended)
+        updateTimerState(TimerStates.Ended)
+        clockPlayer.current?.pause()
+        gongSound.current?.pause()
     }
 
     const pauseTime = () => {
+        pauseAllSFX()
         const handler = timerInterval.current
         clearInterval(handler)
-        setTimerState(TimerStates.Paused)
+        updateTimerState(TimerStates.Paused)
     }
 
     const unPauseTime = () => {
-        setTimerState(TimerStates.Started)
+        updateTimerState(TimerStates.Started)
 
-        const handler = setInterval(() => {
-            if (timerRef.current === 0 || !timerRef.current) {
-                clearInterval(handler)
-                return
-            }
-            setTimer(timerRef.current - 1)
-            timerRef.current--
-        }, 1000)
+        const handler = setInterval(countdownTimerCallback, 1000)
         timerInterval.current = handler
+        playTikTokNoise()
     }
 
     const resetTime = () => {
+        pauseAllSFX()
         const handler = timerInterval.current
         clearInterval(handler)
-        const [hours, minutes, seconds] = parseUserInputIntoNumbers()
-        setTimer(hours * 60 * 60 + minutes * 60 + seconds)
-        timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
-        setTimerState(TimerStates.Ended)
+        setTimerToUserInput()
+        updateTimerState(TimerStates.Ended)
     }
 
     const timerBtnStyles: CSSObject = {}
@@ -169,7 +206,51 @@ function App() {
             </Flex>
         )
     }
-    console.log({ timerState })
+
+    // set up all the soundeffects
+    useEffect(() => {
+        const url = '/clock.mp3'
+        const audioPlayer = new AdvancedAudioPlayer({
+            src: './clock.mp3',
+            loop: true,
+        })
+        const gongPlayer = new AdvancedAudioPlayer({ src: './gong.mp3' })
+        clockPlayer.current = audioPlayer
+        gongSound.current = gongPlayer
+        clockPlayer.current.addEventListener('pause', () => {
+            // pauseTime()
+            console.log({ state: timerState, TimerStates })
+            if (timerStateRef?.current === TimerStates.Started) {
+                //console.log('pause')
+                pauseTime()
+            }
+        })
+        clockPlayer.current.addEventListener('play', () => {
+            //pauseTime()
+            console.log({ state: timerState, TimerStates })
+            if (timerStateRef?.current === TimerStates.Paused) {
+                console.log('play')
+                unPauseTime()
+            }
+        })
+    }, [])
+
+    // play gong on the specified intervals
+    useEffect(() => {
+        setInterval(() => {
+            console.log('tstate', timerStateRef.current, TimerStates)
+            if (
+                (timerRef.current &&
+                    gongTimestamps.includes(timerRef.current) &&
+                    timerStateRef.current === TimerStates.Started) ||
+                (timerStateRef.current === TimerStates.Started &&
+                    gongSound.current?.state === PlayerStates.Paused)
+            ) {
+                gongSound.current?.play()
+            }
+        })
+    })
+
     return (
         <div className='App'>
             <Flex
@@ -202,9 +283,7 @@ function App() {
                         <Input
                             onFocus={() => setTimerFocused(true)}
                             onBlur={() => setTimerFocused(false)}
-                            onChange={(e) =>
-                                validateAndSetTime(e.target.value)
-                            }
+                            onChange={(e) => validateAndSetTime(e.target.value)}
                             variant='unstyled'
                             value={userInput}
                             ref={inputRef}
