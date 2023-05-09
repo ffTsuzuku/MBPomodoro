@@ -7,7 +7,7 @@ enum PlayerStates {
 
 interface AdvancedAudioPlayerProps {
     src: string
-    name: string
+    name?: string
     loop?: boolean
 }
 
@@ -16,7 +16,11 @@ class AdvancedAudioPlayer {
     playCount: number
     state: PlayerStates
     name: string
-    constructor({ src, loop = false, name }: AdvancedAudioPlayerProps) {
+    constructor({
+        src,
+        loop = false,
+        name,
+    }: AdvancedAudioPlayerProps) {
         this.player = new Audio(src)
         this.player.loop = loop
         this.state = PlayerStates.Unplayed
@@ -25,7 +29,6 @@ class AdvancedAudioPlayer {
     }
 
     play() {
-        console.log(`playing ${this.name}`)
         this.state = PlayerStates.Playing
         this.player.play()
     }
@@ -54,6 +57,10 @@ class AdvancedAudioPlayer {
         callback: () => any
     ) {
         this.player.addEventListener(type, callback)
+    }
+
+    setVolume(volume: number) {
+        this.player.volume = volume
     }
 }
 

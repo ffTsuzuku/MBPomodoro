@@ -5,6 +5,13 @@ import './App.css'
 import { Button, Flex, Input } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
 
+import { FiClock } from 'react-icons/fi'
+import { GiGong } from 'react-icons/gi'
+
+import VolumeControl, {
+    AudioSource,
+} from './components/VolumeControl'
+
 import AdvancedAudioPlayer, {
     PlayerStates,
 } from './utility/advancedAudioPlayer'
@@ -19,7 +26,12 @@ function App() {
     const [timer, setTimer] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
-    const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
+    const [timerState, setTimerState] = useState<TimerStates>(
+        TimerStates.Ended
+    )
+    const [audioSources, setAudioSources] = useState<AudioSource[]>(
+        []
+    )
 
     const timerInterval = useRef<number>()
     const timerRef = useRef<number>()
@@ -32,6 +44,10 @@ function App() {
     const updateTimerState = (state: TimerStates) => {
         setTimerState(state)
         timerStateRef.current = state
+    }
+
+    const addAudioSource = ({ src, icon }: AudioSource) => {
+        setAudioSources([...audioSources, { src, icon }])
     }
 
     const validateAndSetTime = (time: string) => {
@@ -65,10 +81,20 @@ function App() {
 
         if (timerFocused) return `${hours}h ${mins}m ${secs}s`
 
-        return `${hoursAsNumber}h ${minsAsNumber}m ${secsAsNumber}s`
+        return `${hoursAsNumber
+            .toString()
+            .padStart(2, '0')}h ${minsAsNumber
+            .toString()
+            .padStart(2, '0')}m ${secsAsNumber
+            .toString()
+            .padStart(2, '0')}s`
     }
 
-    const parseUserInputIntoNumbers = (): [number, number, number] => {
+    const parseUserInputIntoNumbers = (): [
+        number,
+        number,
+        number
+    ] => {
         if (!userInput) return [0, 0, 0]
         const time = userInput.padStart(6, '0')
 
@@ -90,7 +116,6 @@ function App() {
     }
 
     const pauseAllSFX = () => {
-        console.log('pausing sounds', clockPlayer, gongSound)
         clockPlayer.current?.pause()
         gongSound.current?.pause()
     }
@@ -207,19 +232,23 @@ function App() {
         )
     }
 
-    // set up all the soundeffects
+    // set up all audio
     useEffect(() => {
         const url = '/clock.mp3'
         const audioPlayer = new AdvancedAudioPlayer({
             src: './clock.mp3',
             loop: true,
         })
-        const gongPlayer = new AdvancedAudioPlayer({ src: './gong.mp3' })
+        const gongPlayer = new AdvancedAudioPlayer({
+            src: './gong.mp3',
+        })
         clockPlayer.current = audioPlayer
         gongSound.current = gongPlayer
+
+        // If someone presses pause on their bluetooth headphones
+        // The timer should pause also.
         clockPlayer.current.addEventListener('pause', () => {
             // pauseTime()
-            console.log({ state: timerState, TimerStates })
             if (timerStateRef?.current === TimerStates.Started) {
                 //console.log('pause')
                 pauseTime()
@@ -227,18 +256,20 @@ function App() {
         })
         clockPlayer.current.addEventListener('play', () => {
             //pauseTime()
-            console.log({ state: timerState, TimerStates })
             if (timerStateRef?.current === TimerStates.Paused) {
-                console.log('play')
                 unPauseTime()
             }
         })
+
+        setAudioSources([
+            { src: audioPlayer, icon: FiClock },
+            { src: gongPlayer, icon: GiGong },
+        ])
     }, [])
 
     // play gong on the specified intervals
     useEffect(() => {
         setInterval(() => {
-            console.log('tstate', timerStateRef.current, TimerStates)
             if (
                 (timerRef.current &&
                     gongTimestamps.includes(timerRef.current) &&
@@ -283,7 +314,9 @@ function App() {
                         <Input
                             onFocus={() => setTimerFocused(true)}
                             onBlur={() => setTimerFocused(false)}
-                            onChange={(e) => validateAndSetTime(e.target.value)}
+                            onChange={(e) =>
+                                validateAndSetTime(e.target.value)
+                            }
                             variant='unstyled'
                             value={userInput}
                             ref={inputRef}
@@ -304,6 +337,7 @@ function App() {
                         </Flex>
                     </Flex>
                     {ButtonsJSX}
+                    <VolumeControl sources={audioSources} />
                 </Flex>
             </Flex>
         </div>
