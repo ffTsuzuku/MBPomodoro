@@ -16,11 +16,7 @@ class AdvancedAudioPlayer {
     playCount: number
     state: PlayerStates
     name: string
-    constructor({
-        src,
-        loop = false,
-        name,
-    }: AdvancedAudioPlayerProps) {
+    constructor({ src, loop = false, name }: AdvancedAudioPlayerProps) {
         this.player = new Audio(src)
         this.player.loop = loop
         this.state = PlayerStates.Unplayed
@@ -40,7 +36,6 @@ class AdvancedAudioPlayer {
         ) {
             return
         }
-        console.log(`Pausing ${this.name}`, this.player)
         this.player.pause()
         this.state = PlayerStates.Paused
     }

@@ -1,4 +1,5 @@
 import {
+    Box,
     Button,
     Flex,
     Popover,
@@ -14,12 +15,12 @@ import {
     SliderFilledTrack,
     SliderThumb,
     SliderTrack,
-    useDisclosure,
 } from '@chakra-ui/react'
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { IconType } from 'react-icons'
 
-import { FiClock, FiVolume2 } from 'react-icons/fi'
+import { FiVolume2 } from 'react-icons/fi'
+import { BiEqualizer } from 'react-icons/bi'
 
 import AdvancedAudioPlayer from '../utility/advancedAudioPlayer'
 
@@ -33,26 +34,34 @@ interface VolumeControlProps {
 }
 
 const VolumeControl = ({ sources }: VolumeControlProps) => {
-    const { isOpen, onToggle, onClose } = useDisclosure()
+    const [isOpen, setIsOpen] = useState<boolean>(false)
 
     const sourceJSX = sources.map((source) => {
         return (
-            <Flex wrap={'wrap'} justifyContent={'center'} w={'30px'}>
+            <Flex
+                wrap={'wrap'}
+                justifyContent={'center'}
+                w={'30px'}
+                key={source.src.name}
+            >
                 <Slider
                     aria-label='slider-ex-3'
                     defaultValue={100}
                     orientation='vertical'
                     minH='32'
                     width={'100%'}
+                    height={'50px'}
                     marginBottom={'10px'}
                     onChange={(v) => source.src.setVolume(v / 100)}
                 >
-                    <SliderTrack>
+                    <SliderTrack bg='blue.200'>
                         <SliderFilledTrack />
                     </SliderTrack>
-                    <SliderThumb />
+                    <SliderThumb boxSize={7}>
+                        <Box color='blue.500' as={BiEqualizer} />
+                    </SliderThumb>
                 </Slider>
-                <source.icon />
+                <source.icon size={'25px'} />
             </Flex>
         )
     })
@@ -64,17 +73,28 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
                     <FiVolume2
                         size={'30px'}
                         cursor={'pointer'}
-                        onClick={onToggle}
+                        onClick={() => setIsOpen(!isOpen)}
                     />
                 </Flex>
             </PopoverTrigger>
             <PopoverContent>
                 <PopoverArrow />
                 <PopoverCloseButton />
-                <PopoverBody display={'flex'}>
+                <PopoverBody
+                    display={'flex'}
+                    height={'200px'}
+                    alignItems={'flex-end'}
+                    justifyContent={'space-around'}
+                >
                     {sourceJSX}
                 </PopoverBody>
-                <PopoverFooter>Volume Control</PopoverFooter>
+                <PopoverFooter
+                    textAlign={'center'}
+                    fontWeight={'bold'}
+                    color={'blue.300'}
+                >
+                    Volume Control
+                </PopoverFooter>
             </PopoverContent>
         </Popover>
     )

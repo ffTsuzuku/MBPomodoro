@@ -8,9 +8,7 @@ import { CSSObject } from '@emotion/react'
 import { FiClock } from 'react-icons/fi'
 import { GiGong } from 'react-icons/gi'
 
-import VolumeControl, {
-    AudioSource,
-} from './components/VolumeControl'
+import VolumeControl, { AudioSource } from './components/VolumeControl'
 
 import AdvancedAudioPlayer, {
     PlayerStates,
@@ -26,12 +24,8 @@ function App() {
     const [timer, setTimer] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
-    const [timerState, setTimerState] = useState<TimerStates>(
-        TimerStates.Ended
-    )
-    const [audioSources, setAudioSources] = useState<AudioSource[]>(
-        []
-    )
+    const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
+    const [audioSources, setAudioSources] = useState<AudioSource[]>([])
 
     const timerInterval = useRef<number>()
     const timerRef = useRef<number>()
@@ -63,11 +57,15 @@ function App() {
         if (!userInput) return '00h 00m 00s'
 
         if (timerInterval.current && timerRef.current) {
-            let seconds = timerRef.current
-            const hours = Math.floor(seconds / 3600) // Calculate hours
+            let seconds: number | string = timerRef.current
+            const hours = Math.floor(seconds / 3600)
+                .toString()
+                .padStart(2, '0') // Calculate hours
             seconds %= 3600 // Get remaining seconds
-            const minutes = Math.floor(seconds / 60) // Calculate minutes
-            seconds %= 60 // Get remaining seconds
+            const minutes = Math.floor(seconds / 60)
+                .toString()
+                .padStart(2, '0') // Calculate minutes
+            seconds = (seconds % 60).toString().padStart(2, '0') // Get remaining seconds
 
             return `${hours}h ${minutes}m ${seconds}s`
         }
@@ -81,20 +79,12 @@ function App() {
 
         if (timerFocused) return `${hours}h ${mins}m ${secs}s`
 
-        return `${hoursAsNumber
+        return `${hoursAsNumber.toString().padStart(2, '0')}h ${minsAsNumber
             .toString()
-            .padStart(2, '0')}h ${minsAsNumber
-            .toString()
-            .padStart(2, '0')}m ${secsAsNumber
-            .toString()
-            .padStart(2, '0')}s`
+            .padStart(2, '0')}m ${secsAsNumber.toString().padStart(2, '0')}s`
     }
 
-    const parseUserInputIntoNumbers = (): [
-        number,
-        number,
-        number
-    ] => {
+    const parseUserInputIntoNumbers = (): [number, number, number] => {
         if (!userInput) return [0, 0, 0]
         const time = userInput.padStart(6, '0')
 
@@ -314,9 +304,7 @@ function App() {
                         <Input
                             onFocus={() => setTimerFocused(true)}
                             onBlur={() => setTimerFocused(false)}
-                            onChange={(e) =>
-                                validateAndSetTime(e.target.value)
-                            }
+                            onChange={(e) => validateAndSetTime(e.target.value)}
                             variant='unstyled'
                             value={userInput}
                             ref={inputRef}
