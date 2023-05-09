@@ -40,10 +40,6 @@ function App() {
         timerStateRef.current = state
     }
 
-    const addAudioSource = ({ src, icon }: AudioSource) => {
-        setAudioSources([...audioSources, { src, icon }])
-    }
-
     const validateAndSetTime = (time: string) => {
         // remove non numbers
         time = time.replace(/[^0-9]/g, '')
@@ -84,6 +80,7 @@ function App() {
             .padStart(2, '0')}m ${secsAsNumber.toString().padStart(2, '0')}s`
     }
 
+    // convert what the user types in to [hours, mins, secods]
     const parseUserInputIntoNumbers = (): [number, number, number] => {
         if (!userInput) return [0, 0, 0]
         const time = userInput.padStart(6, '0')
@@ -105,26 +102,31 @@ function App() {
         return [hoursAsNumber, minsAsNumber, secsAsNumber]
     }
 
+    // puts all audio sources in a paused state
     const pauseAllSFX = () => {
-        clockPlayer.current?.pause()
-        gongSound.current?.pause()
-    }
-
-    const resumeAllSFX = () => {
-        if (clockPlayer.current?.state === PlayerStates.Paused) {
-            clockPlayer.current?.play()
-        }
-        if (gongSound.current?.state === PlayerStates.Paused) {
-            gongSound.current?.play()
+        for (const source of audioSources) {
+            source.src.pause()
         }
     }
 
+    // puts all audio sources in the end state
+    const endAllSfx = () => {
+        for (const source of audioSources) {
+            source.src.end()
+        }
+    }
+
+    // plays the clock audio
     const playTikTokNoise = () => {
-        if (clockPlayer.current?.state === PlayerStates.Paused) {
+        if (
+            clockPlayer.current?.state === PlayerStates.Paused ||
+            clockPlayer.current?.state === PlayerStates.Unplayed
+        ) {
             clockPlayer.current?.play()
         }
     }
 
+    // Logic for decrementing the timer
     const countdownTimerCallback = () => {
         if (timerRef.current === 0 || !timerRef.current) {
             endTime()
@@ -150,9 +152,7 @@ function App() {
         updateTimerState(TimerStates.Started)
 
         const handler = setInterval(countdownTimerCallback, 1000)
-        if (clockPlayer.current) {
-            clockPlayer.current.play()
-        }
+        playTikTokNoise()
         timerInterval.current = handler
     }
 
@@ -161,8 +161,7 @@ function App() {
         const handler = timerInterval.current
         clearInterval(handler)
         updateTimerState(TimerStates.Ended)
-        clockPlayer.current?.pause()
-        gongSound.current?.pause()
+        endAllSfx()
     }
 
     const pauseTime = () => {
@@ -194,11 +193,14 @@ function App() {
         }
     }
 
-    const timerBtnStyles: CSSObject = {}
+    const timerBtnStyles: CSSObject = {
+        marginLeft: '20px',
+    }
+    // Disabled styles
     if (formatTime() == '00h 00m 00s') {
         timerBtnStyles.backgroundColor = 'gray'
         timerBtnStyles.cursor = 'default'
-        timerBtnStyles.color = 'lightgray'
+        timerBtnStyles.color = 'white'
     }
     let ButtonsJSX = (
         <Flex w={'100%'} justifyContent={'center'}>
@@ -297,14 +299,13 @@ function App() {
                     h={'50%'}
                     shadow={'2xl'}
                     borderRadius={'10px'}
-                    bgColor={'pink.100'}
+                    bgColor={'gray.900'}
                     wrap={'wrap'}
                 >
                     <Flex
                         alignContent={'center'}
                         justifyContent={'center'}
                         alignItems={'center'}
-                        border={'10px solid white'}
                         w={'70%'}
                         h={'70%'}
                         borderRadius={'10px'}
@@ -325,7 +326,7 @@ function App() {
                             w={'100%'}
                             justifyContent='center'
                             fontSize={'5xl'}
-                            color={'gray.600'}
+                            color={'gray.200'}
                             onClick={() => inputRef?.current?.focus()}
                         >
                             {formatTime()}
