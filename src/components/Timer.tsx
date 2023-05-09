@@ -8,7 +8,9 @@ import AdvancedAudioPlayer, {
 
 import { Button, Flex, Input } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
-import VolumeControl, { AudioSource } from '../components/VolumeControl'
+import VolumeControl, {
+    AudioSource,
+} from '../components/VolumeControl'
 
 const Timer = () => {
     enum TimerStates {
@@ -16,12 +18,18 @@ const Timer = () => {
         Paused,
         Ended,
     }
-    const [userInput, setUserInput] = useState<string>('')
+    const predefinedSchedule: string[] = ['3000']
+    const [userInput, setUserInput] = useState<string>(predefinedSchedule[0])
+    const [prevUserInput, setPrevUserInput] = useState<string>('')
     const [timer, setTimer] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
-    const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
-    const [audioSources, setAudioSources] = useState<AudioSource[]>([])
+    const [timerState, setTimerState] = useState<TimerStates>(
+        TimerStates.Ended
+    )
+    const [audioSources, setAudioSources] = useState<AudioSource[]>(
+        []
+    )
 
     const timerInterval = useRef<number>()
     const timerRef = useRef<number>()
@@ -46,7 +54,34 @@ const Timer = () => {
     }
 
     const formatTime = () => {
-        if (!userInput) return '00h 00m 00s'
+
+        const formatUserInput = (userInput: string) => {
+            const time = userInput.padStart(6, '0')
+            const hours = time.slice(0, 2) || '00'
+            const mins = time.slice(2, 4) || '00'
+            const secs = time.slice(4, 6) || '00'
+
+            const [hoursAsNumber, minsAsNumber, secsAsNumber] =
+                parseUserInputIntoNumbers()
+
+            if (timerFocused) return `${hours}h ${mins}m ${secs}s`
+
+            return `${hoursAsNumber
+                .toString()
+                .padStart(2, '0')}h ${minsAsNumber
+                .toString()
+                .padStart(2, '0')}m ${secsAsNumber
+                .toString()
+                .padStart(2, '0')}s`
+        }
+
+        if (!userInput) {
+
+            if (prevUserInput) {
+                return formatUserInput(prevUserInput)
+            }
+            return '00h 00m 00s'
+        }
 
         if (timerInterval.current && timerRef.current) {
             let seconds: number | string = timerRef.current
@@ -61,23 +96,15 @@ const Timer = () => {
 
             return `${hours}h ${minutes}m ${seconds}s`
         }
-        const time = userInput.padStart(6, '0')
-        const hours = time.slice(0, 2) || '00'
-        const mins = time.slice(2, 4) || '00'
-        const secs = time.slice(4, 6) || '00'
-
-        const [hoursAsNumber, minsAsNumber, secsAsNumber] =
-            parseUserInputIntoNumbers()
-
-        if (timerFocused) return `${hours}h ${mins}m ${secs}s`
-
-        return `${hoursAsNumber.toString().padStart(2, '0')}h ${minsAsNumber
-            .toString()
-            .padStart(2, '0')}m ${secsAsNumber.toString().padStart(2, '0')}s`
+        return formatUserInput(userInput)
     }
 
     // convert what the user types in to [hours, mins, secods]
-    const parseUserInputIntoNumbers = (): [number, number, number] => {
+    const parseUserInputIntoNumbers = (): [
+        number,
+        number,
+        number
+    ] => {
         if (!userInput) return [0, 0, 0]
         const time = userInput.padStart(6, '0')
 
@@ -189,6 +216,12 @@ const Timer = () => {
         }
     }
 
+    const onFocusInput = () => {
+        setPrevUserInput(userInput)
+        setTimerFocused(true)
+        setUserInput('')
+    }
+
     const timerBtnStyles: CSSObject = {
         marginLeft: '20px',
     }
@@ -289,7 +322,7 @@ const Timer = () => {
             wrap='wrap'
         >
             <Input
-                onFocus={() => setTimerFocused(true)}
+                onFocus={onFocusInput}
                 onBlur={() => setTimerFocused(false)}
                 onChange={(e) => validateAndSetTime(e.target.value)}
                 onKeyDown={(e) => startTimeIfEntered(e)}
@@ -303,14 +336,21 @@ const Timer = () => {
                 w={'100%'}
                 justifyContent='center'
                 fontSize={'5xl'}
-                color={'gray.200'}
+                color={ timerFocused ? 'gray.600' : 'gray.200'}
                 onClick={() => inputRef?.current?.focus()}
             >
                 {formatTime()}
-                <span className='blinkMe'>{timerFocused ? '|' : ''}</span>
+                <span className='blinkMe'>
+                    {timerFocused ? '|' : ''}
+                </span>
             </Flex>
             {ButtonsJSX}
-            <Flex justifyContent={'flex-end'} w={'100%'} mr={5} mb={5}>
+            <Flex
+                justifyContent={'flex-end'}
+                w={'100%'}
+                mr={5}
+                mb={5}
+            >
                 <VolumeControl sources={audioSources} />
             </Flex>
         </Flex>
