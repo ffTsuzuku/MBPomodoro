@@ -8,7 +8,7 @@ import AdvancedAudioPlayer, {
 
 import { Button, Flex, Input } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
-import VolumeControl from './VolumeControl'
+import VolumeControl, { AudioSource } from '../components/VolumeControl'
 
 const Timer = () => {
     enum TimerStates {
