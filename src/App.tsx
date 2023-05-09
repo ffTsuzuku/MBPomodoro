@@ -144,6 +144,9 @@ function App() {
     // logic for begining the timer count down.
     const startTime = () => {
         setTimerToUserInput()
+        if (timerRef.current === 0) {
+            return
+        }
         updateTimerState(TimerStates.Started)
 
         const handler = setInterval(countdownTimerCallback, 1000)
@@ -183,6 +186,12 @@ function App() {
         clearInterval(handler)
         setTimerToUserInput()
         updateTimerState(TimerStates.Ended)
+    }
+
+    const startTimeIfEntered = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            startTime()
+        }
     }
 
     const timerBtnStyles: CSSObject = {}
@@ -305,6 +314,7 @@ function App() {
                             onFocus={() => setTimerFocused(true)}
                             onBlur={() => setTimerFocused(false)}
                             onChange={(e) => validateAndSetTime(e.target.value)}
+                            onKeyDown={(e) => startTimeIfEntered(e)}
                             variant='unstyled'
                             value={userInput}
                             ref={inputRef}
