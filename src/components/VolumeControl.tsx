@@ -74,6 +74,7 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
                         size={'30px'}
                         cursor={'pointer'}
                         onClick={() => setIsOpen(!isOpen)}
+                        color={'white'}
                     />
                 </Flex>
             </PopoverTrigger>
