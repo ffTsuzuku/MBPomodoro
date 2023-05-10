@@ -6,18 +6,24 @@ import AdvancedAudioPlayer, {
     PlayerStates,
 } from '../utility/advancedAudioPlayer'
 
-import { Button, Flex, Input } from '@chakra-ui/react'
+import { Button, Flex, Input, localStorageManager } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
 import VolumeControl, { AudioSource } from '../components/VolumeControl'
 
 import PresetMenu from './PresetMenu'
 
 import { TimeString } from '../utility/time'
+import LocalStorageManager from '../utility/storage'
 
 interface Preset {
     time: TimeString
     deletable: boolean
 }
+
+const defaultPresets: Preset[] = [
+    { time: new TimeString('500'), deletable: false },
+    { time: new TimeString('3000'), deletable: false },
+]
 
 const Timer = () => {
     enum TimerStates {
@@ -25,10 +31,6 @@ const Timer = () => {
         Paused,
         Ended,
     }
-    const defaultPresets: Preset[] = [
-        { time: new TimeString('500'), deletable: false },
-        { time: new TimeString('3000'), deletable: false },
-    ]
     const [userInput, setUserInput] = useState<TimeString>(
         defaultPresets[0].time
     )
@@ -40,13 +42,18 @@ const Timer = () => {
     const [timerFocused, setTimerFocused] = useState<boolean>()
     const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
     const [audioSources, setAudioSources] = useState<AudioSource[]>([])
-    const [presets, setPresets] = useState<Preset[]>(defaultPresets)
+    const [presets, setPresets] = useState<Preset[]>(
+        LocalStorageManager.fetchPresets()
+    )
 
     const timerInterval = useRef<number | undefined>(undefined)
     const timerRef = useRef<number>()
     const clockPlayer = useRef<AdvancedAudioPlayer>()
     const gongSound = useRef<AdvancedAudioPlayer>()
     const timerStateRef = useRef<TimerStates>(TimerStates.Ended)
+    const storageManager = useRef<LocalStorageManager>(
+        new LocalStorageManager()
+    )
 
     const gongTimestamps = [30]
 
@@ -222,6 +229,11 @@ const Timer = () => {
         setUserInput(new TimeString(preset.time.time))
     }
 
+    const updatePresets = (presets: Preset[]) => {
+        setPresets(presets)
+        storageManager.current.setPresets(presets)
+    }
+
     const timerBtnStyles: CSSObject = {
         marginLeft: '20px',
     }
@@ -353,7 +365,7 @@ const Timer = () => {
                 <PresetMenu
                     presets={presets}
                     onSelect={applyPreset}
-                    updatePresets={setPresets}
+                    updatePresets={updatePresets}
                 />
                 <VolumeControl sources={audioSources} />
             </Flex>
@@ -364,3 +376,4 @@ const Timer = () => {
 export default Timer
 
 export type { Preset }
+export { defaultPresets }

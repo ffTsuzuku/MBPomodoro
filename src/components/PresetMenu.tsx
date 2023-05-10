@@ -10,9 +10,10 @@ import {
     PopoverTrigger,
     Portal,
     VStack,
+    Text,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { MdOutlineSchedule } from 'react-icons/md'
+import { MdOutlineSchedule, MdRemove } from 'react-icons/md'
 import { TimeString } from '../utility/time'
 import { Preset } from './Timer'
 import TimerInput from './TimerInput'
@@ -32,18 +33,6 @@ const PresetMenu = ({
         new TimeString('0')
     )
 
-    const PresetOptionsJSX = presets.map((preset) => {
-        return (
-            <Flex
-                onClick={() => onSelect(preset)}
-                cursor={'pointer'}
-                key={preset.time.time}
-            >
-                {preset.time.format(true)}
-            </Flex>
-        )
-    })
-
     const onSubmitPresetVal = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             const exist =
@@ -54,6 +43,38 @@ const PresetMenu = ({
             setNewPreset(new TimeString('0'))
         }
     }
+
+    const onDeletePreset = (preset: Preset) => {
+        const newSet = presets.filter((currPreset) => {
+            return preset.time.time !== currPreset.time.time
+        })
+
+        updatePresets(newSet)
+    }
+
+    const PresetOptionsJSX = presets.map((preset) => {
+        const removeJSX = preset.deletable ? (
+            <MdRemove
+                color={'#171923'}
+                onClick={() => onDeletePreset(preset)}
+            />
+        ) : (
+            <></>
+        )
+        return (
+            <Flex
+                justifyContent={'space-between'}
+                cursor={'pointer'}
+                key={preset.time.time}
+                w={'100%'}
+            >
+                <Text onClick={() => onSelect(preset)}>
+                    {preset.time.format(true)}
+                </Text>
+                {removeJSX}
+            </Flex>
+        )
+    })
 
     return (
         <Popover placement='top'>
@@ -71,7 +92,16 @@ const PresetMenu = ({
                     <PopoverArrow />
                     <PopoverCloseButton />
                     <PopoverBody>
-                        <VStack p={3}>{PresetOptionsJSX}</VStack>
+                        <VStack
+                            overflowX={'hidden'}
+                            overflowY={'auto'}
+                            h={'200px'}
+                            px={3}
+                            className={'scrollbar1'}
+                            mt={'30px'}
+                        >
+                            {PresetOptionsJSX}
+                        </VStack>
                         <TimerInput
                             userInput={newPreset}
                             updateUserInput={setNewPreset}

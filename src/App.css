@@ -7,3 +7,23 @@
         opacity: 0;
     }
 }
+
+.scrollbar1::-webkit-scrollbar {
+    width: 10px;
+}
+
+.scrollbar1::-webkit-scrollbar-track {
+    border-radius: 8px;
+    background-color: #e7e7e7;
+    border: 1px solid #cacaca;
+}
+
+.scrollbar1::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: #171923;
+}
+/*       ScrollBar 2        */
+
+.scrollbar2::-webkit-scrollbar {
+    width: 12px;
+}
