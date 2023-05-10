@@ -14,7 +14,7 @@ import VolumeControl, {
 
 import PresetMenu from './PresetMenu'
 
-import { formatUserInput } from '../utility/time'
+import { formatUserInput, parseUserInputIntoNumbers } from '../utility/time'
 
 const Timer = () => {
     enum TimerStates {
@@ -22,7 +22,7 @@ const Timer = () => {
         Paused,
         Ended,
     }
-    const predefinedSchedule: string[] = ['3000']
+    const predefinedSchedule: string[] = ['500', '3000']
     const [userInput, setUserInput] = useState<string>(predefinedSchedule[0])
     const [prevUserInput, setPrevUserInput] = useState<string>('')
     const [timer, setTimer] = useState<number>()
@@ -60,55 +60,34 @@ const Timer = () => {
     const formatTime = () => {
 
         if (!userInput) {
-
             // When you focus the input it clears the user input.
             // So instead we showcase the prevUserInput
             if (prevUserInput) {
-                return formatUserInput(prevUserInput)
+                return formatUserInput(prevUserInput, !timerFocused)
             }
             return '00h 00m 00s'
         }
 
+        // You're currently editting the time so show the changes. 
+        if (timerFocused) {
+            return formatUserInput(userInput, false)
+        }
+        
         if (timerInterval.current && timerRef.current) {
             let seconds: number | string = timerRef.current
-            const hours = Math.floor(seconds / 3600)
-                .toString()
-                .padStart(2, '0') // Calculate hours
+            const hours = Math.floor(seconds / 3600) // Calculate hours
             seconds %= 3600 // Get remaining seconds
-            const minutes = Math.floor(seconds / 60)
-                .toString()
-                .padStart(2, '0') // Calculate minutes
+            const minutes = Math.floor(seconds / 60) // Calculate minutes
             seconds = (seconds % 60).toString().padStart(2, '0') // Get remaining seconds
 
-            return `${hours}h ${minutes}m ${seconds}s`
+            let formatedString = '';
+            if (hours) formatedString += `${hours}h `
+            if (minutes) formatedString +=  `${minutes}m `
+            formatedString += `${seconds}s`
+            return formatedString
         }
-        return formatUserInput(userInput)
-    }
 
-    // convert what the user types in to [hours, mins, secods]
-    const parseUserInputIntoNumbers = (): [
-        number,
-        number,
-        number
-    ] => {
-        if (!userInput) return [0, 0, 0]
-        const time = userInput.padStart(6, '0')
-
-        let secsAsNumber = parseInt(time.slice(4, 6) || '0')
-        let minsAsNumber = parseInt(time.slice(2, 4) || '0')
-        let hoursAsNumber = parseInt(time.slice(0, 2) || '0')
-
-        const secsOverflow = Math.floor(secsAsNumber / 60)
-        const secsRemainder = secsAsNumber % 60
-        secsAsNumber = secsRemainder
-        minsAsNumber = minsAsNumber + secsOverflow
-
-        const minsOverflow = Math.floor(minsAsNumber / 60)
-        const minsRemainder = minsAsNumber % 60
-        minsAsNumber = minsRemainder
-        hoursAsNumber = hoursAsNumber + minsOverflow
-
-        return [hoursAsNumber, minsAsNumber, secsAsNumber]
+        return formatUserInput(userInput, !timerFocused)
     }
 
     // puts all audio sources in a paused state
@@ -147,7 +126,7 @@ const Timer = () => {
 
     // sets the timer state and its correspondingref to what the user entered.
     const setTimerToUserInput = () => {
-        const [hours, minutes, seconds] = parseUserInputIntoNumbers()
+        const [hours, minutes, seconds] = parseUserInputIntoNumbers(userInput)
         setTimer(hours * 60 * 60 + minutes * 60 + seconds)
         timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
     }
@@ -204,6 +183,7 @@ const Timer = () => {
     }
 
     const onFocusInput = () => {
+        console.log('ran')
         setPrevUserInput(userInput)
         setTimerFocused(true)
         setUserInput('')
@@ -213,14 +193,22 @@ const Timer = () => {
     }
 
     const onBlurInput = () => {
+        // If they exited the input without making changes revert
+        // to what it used to be.
         if (!userInput) {
             setUserInput(prevUserInput)
             setPrevUserInput('')
+
+            // This mean the timer was running before we focused
+            // To start it again.
+            if (timerInterval.current) {
+                unPauseTime()
+            }
+        } else if (userInput) {
+            // Time was changed, end current count down. 
+            endTime()
         }
         setTimerFocused(false)
-        if (timerInterval.current) {
-            unPauseTime()
-        }
     }
 
     const timerBtnStyles: CSSObject = {

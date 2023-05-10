@@ -1,4 +1,4 @@
-import { Flex, HStack, Popover, PopoverBody, PopoverCloseButton, PopoverContent, PopoverFooter, PopoverTrigger, Portal } from '@chakra-ui/react'
+import { Flex, HStack, Popover, PopoverBody, PopoverCloseButton, PopoverContent, PopoverFooter, PopoverTrigger, Portal, VStack } from '@chakra-ui/react'
 import { MdOutlineSchedule } from 'react-icons/md'
 
 import { formatUserInput } from '../utility/time'
@@ -9,7 +9,9 @@ interface PresetMenuInterface {
 }
 const PresetMenu = ({ presets, onSelect }: PresetMenuInterface) => {
     const PresetOptionsJSX = presets.map(preset => {
-        return <Flex>{formatUserInput(preset)}</Flex>
+        return <Flex onClick={() => onSelect(preset)} cursor={'pointer'}>
+            {formatUserInput(preset)}
+        </Flex>
     })
     return <Popover placement='top'>
         <PopoverTrigger>
@@ -21,11 +23,17 @@ const PresetMenu = ({ presets, onSelect }: PresetMenuInterface) => {
             <PopoverContent>
             <PopoverCloseButton />
             <PopoverBody>
-                <HStack>
+                <VStack p={3}>
                     {PresetOptionsJSX}
-                </HStack>
+                </VStack>
             </PopoverBody>
-            <PopoverFooter>Presets</PopoverFooter>
+            <PopoverFooter
+                textAlign={'center'}
+                color={'blue.300'}
+                fontWeight={'bold'}
+            >
+                    Presets
+            </PopoverFooter>
             </PopoverContent>
         </Portal>
     </Popover>
