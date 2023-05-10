@@ -11,14 +11,27 @@ import {
     Portal,
     VStack,
 } from '@chakra-ui/react'
+import { useState } from 'react'
 import { MdOutlineSchedule } from 'react-icons/md'
+import { TimeString } from '../utility/time'
 import { Preset } from './Timer'
+import TimerInput from './TimerInput'
 
 interface PresetMenuInterface {
     presets: Preset[]
     onSelect: (preset: Preset) => any
+    updatePresets: (presets: Preset[]) => any
 }
-const PresetMenu = ({ presets, onSelect }: PresetMenuInterface) => {
+const PresetMenu = ({
+    presets,
+    onSelect,
+    updatePresets,
+}: PresetMenuInterface) => {
+    const [newPreset, setNewPreset] = useState<TimeString>(new TimeString('0'))
+    const [prevNewPreset, setPrevNewPreset] = useState<TimeString>(
+        new TimeString('0')
+    )
+
     const PresetOptionsJSX = presets.map((preset) => {
         return (
             <Flex
@@ -30,6 +43,13 @@ const PresetMenu = ({ presets, onSelect }: PresetMenuInterface) => {
             </Flex>
         )
     })
+
+    const onSubmitPresetVal = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            updatePresets([...presets, { time: newPreset, deletable: true }])
+        }
+    }
+
     return (
         <Popover placement='top'>
             <PopoverTrigger>
@@ -47,6 +67,13 @@ const PresetMenu = ({ presets, onSelect }: PresetMenuInterface) => {
                     <PopoverCloseButton />
                     <PopoverBody>
                         <VStack p={3}>{PresetOptionsJSX}</VStack>
+                        <TimerInput
+                            userInput={newPreset}
+                            updateUserInput={setNewPreset}
+                            prevUserInput={prevNewPreset}
+                            updatePrevUserInput={setPrevNewPreset}
+                            onKeyDown={onSubmitPresetVal}
+                        />
                     </PopoverBody>
                     <PopoverFooter
                         textAlign={'center'}

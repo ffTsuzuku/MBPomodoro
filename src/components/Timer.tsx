@@ -350,7 +350,11 @@ const Timer = () => {
                 mr={5}
                 mb={5}
             >
-                <PresetMenu presets={presets} onSelect={applyPreset} />
+                <PresetMenu
+                    presets={presets}
+                    onSelect={applyPreset}
+                    updatePresets={setPresets}
+                />
                 <VolumeControl sources={audioSources} />
             </Flex>
         </Flex>
