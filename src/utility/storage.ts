@@ -11,19 +11,19 @@ class LocalStorageManager {
 
         // if missing clock volume setting
         if (!localStorage.getItem('clockVolume')) {
-            localStorage.setItem('clockVolume', '100')
+            localStorage.setItem('clockVolume', '1')
         }
 
         // if missing bell volume setting
         if (!localStorage.getItem('bellVolume')) {
-            localStorage.setItem('bellVolume', '100')
+            localStorage.setItem('bellVolume', '1')
         }
     }
 
     static fetchPresets(): Preset[] {
-        return (
-            JSON.parse(localStorage.getItem('presets') ?? '') || defaultPresets
-        ).map((preset: Preset) => {
+        const savedPresets = localStorage.getItem('presets')
+        const presets = savedPresets ? JSON.parse(savedPresets) : defaultPresets
+        return presets.map((preset: Preset) => {
             preset.time = new TimeString(preset.time.time)
             return preset
         })
