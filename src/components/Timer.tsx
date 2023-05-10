@@ -12,6 +12,10 @@ import VolumeControl, {
     AudioSource,
 } from '../components/VolumeControl'
 
+import PresetMenu from './PresetMenu'
+
+import { formatUserInput } from '../utility/time'
+
 const Timer = () => {
     enum TimerStates {
         Started,
@@ -31,7 +35,7 @@ const Timer = () => {
         []
     )
 
-    const timerInterval = useRef<number>()
+    const timerInterval = useRef<number|undefined>(undefined)
     const timerRef = useRef<number>()
     const clockPlayer = useRef<AdvancedAudioPlayer>()
     const gongSound = useRef<AdvancedAudioPlayer>()
@@ -55,28 +59,10 @@ const Timer = () => {
 
     const formatTime = () => {
 
-        const formatUserInput = (userInput: string) => {
-            const time = userInput.padStart(6, '0')
-            const hours = time.slice(0, 2) || '00'
-            const mins = time.slice(2, 4) || '00'
-            const secs = time.slice(4, 6) || '00'
-
-            const [hoursAsNumber, minsAsNumber, secsAsNumber] =
-                parseUserInputIntoNumbers()
-
-            if (timerFocused) return `${hours}h ${mins}m ${secs}s`
-
-            return `${hoursAsNumber
-                .toString()
-                .padStart(2, '0')}h ${minsAsNumber
-                .toString()
-                .padStart(2, '0')}m ${secsAsNumber
-                .toString()
-                .padStart(2, '0')}s`
-        }
-
         if (!userInput) {
 
+            // When you focus the input it clears the user input.
+            // So instead we showcase the prevUserInput
             if (prevUserInput) {
                 return formatUserInput(prevUserInput)
             }
@@ -184,6 +170,7 @@ const Timer = () => {
         const handler = timerInterval.current
         clearInterval(handler)
         updateTimerState(TimerStates.Ended)
+        timerInterval.current = undefined
         endAllSfx()
     }
 
@@ -220,6 +207,20 @@ const Timer = () => {
         setPrevUserInput(userInput)
         setTimerFocused(true)
         setUserInput('')
+        if (timerInterval.current) {
+            pauseTime()
+        }
+    }
+
+    const onBlurInput = () => {
+        if (!userInput) {
+            setUserInput(prevUserInput)
+            setPrevUserInput('')
+        }
+        setTimerFocused(false)
+        if (timerInterval.current) {
+            unPauseTime()
+        }
     }
 
     const timerBtnStyles: CSSObject = {
@@ -249,7 +250,7 @@ const Timer = () => {
                 </Button>
             </Flex>
         )
-    } else if (timerState === TimerStates.Paused) {
+    } else if (timerState === TimerStates.Paused && userInput) {
         ButtonsJSX = (
             <Flex w={'100%'} justifyContent={'center'}>
                 <Button onClick={unPauseTime} style={timerBtnStyles}>
@@ -323,7 +324,7 @@ const Timer = () => {
         >
             <Input
                 onFocus={onFocusInput}
-                onBlur={() => setTimerFocused(false)}
+                onBlur={onBlurInput}
                 onChange={(e) => validateAndSetTime(e.target.value)}
                 onKeyDown={(e) => startTimeIfEntered(e)}
                 variant='unstyled'
@@ -346,11 +347,16 @@ const Timer = () => {
             </Flex>
             {ButtonsJSX}
             <Flex
+                alignItems={'center'}
                 justifyContent={'flex-end'}
                 w={'100%'}
                 mr={5}
                 mb={5}
             >
+                <PresetMenu
+                    presets={predefinedSchedule}
+                    onSelect={(preset: string) => setUserInput(preset)}
+                />
                 <VolumeControl sources={audioSources} />
             </Flex>
         </Flex>
