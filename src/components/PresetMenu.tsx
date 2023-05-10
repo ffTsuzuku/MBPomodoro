@@ -46,7 +46,12 @@ const PresetMenu = ({
 
     const onSubmitPresetVal = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
+            const exist =
+                presets.filter((preset) => preset.time.time === newPreset.time)
+                    .length > 0
+            if (exist) return
             updatePresets([...presets, { time: newPreset, deletable: true }])
+            setNewPreset(new TimeString('0'))
         }
     }
 

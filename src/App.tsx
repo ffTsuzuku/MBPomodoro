@@ -1,5 +1,5 @@
 import './App.css'
-import { Button, Flex, Input } from '@chakra-ui/react'
+import { Box, Button, Flex, Grid, Input, Text } from '@chakra-ui/react'
 import Timer from './components/Timer'
 import './App.css'
 
@@ -12,8 +12,9 @@ function App() {
                 h={'100vh'}
                 justifyContent={'center'}
                 alignItems={'center'}
+                overflow={'hidden'}
             >
-                <Flex
+                <Grid
                     justifyContent={'center'}
                     alignItems={'center'}
                     w={'50%'}
@@ -21,10 +22,21 @@ function App() {
                     shadow={'2xl'}
                     borderRadius={'10px'}
                     bgColor={'gray.900'}
-                    wrap={'wrap'}
+                    gridTemplateRows={'1fr 5fr'}
+                    gridTemplateColumns={'1fr'}
+                    overflow={'hidden'}
                 >
+                    <Text
+                        color={'whiteAlpha.700'}
+                        fontSize={'30px'}
+                        pt={5}
+                        textAlign={'center'}
+                    >
+                        {'MBPomodoro'}
+                    </Text>
+
                     <Timer />
-                </Flex>
+                </Grid>
             </Flex>
         </div>
     )
