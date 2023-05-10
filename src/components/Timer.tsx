@@ -276,13 +276,16 @@ const Timer = () => {
 
     // set up all audio
     useEffect(() => {
-        const url = '/clock.mp3'
         const audioPlayer = new AdvancedAudioPlayer({
             src: './clock.mp3',
             loop: true,
+            name: 'clock',
+            volume: LocalStorageManager.fetchClockVolume(),
         })
         const gongPlayer = new AdvancedAudioPlayer({
             src: './gong.mp3',
+            name: 'gong',
+            volume: LocalStorageManager.fetchBellVolume(),
         })
         clockPlayer.current = audioPlayer
         gongSound.current = gongPlayer
@@ -292,7 +295,6 @@ const Timer = () => {
         clockPlayer.current.addEventListener('pause', () => {
             // pauseTime()
             if (timerStateRef?.current === TimerStates.Started) {
-                //console.log('pause')
                 pauseTime()
             }
         })

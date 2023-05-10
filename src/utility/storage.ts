@@ -30,11 +30,11 @@ class LocalStorageManager {
     }
 
     static fetchClockVolume(): number {
-        return parseInt(localStorage.getItem('clockVolume') ?? '100')
+        return parseFloat(localStorage.getItem('clockVolume') ?? '100')
     }
 
     static fetchBellVolume(): number {
-        return parseInt(localStorage.getItem('bellVolume') ?? '100')
+        return parseFloat(localStorage.getItem('bellVolume') ?? '100')
     }
 
     setClockVolume(volume: number) {

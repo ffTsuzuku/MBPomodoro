@@ -16,13 +16,14 @@ import {
     SliderThumb,
     SliderTrack,
 } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { IconType } from 'react-icons'
 
 import { FiVolume2 } from 'react-icons/fi'
 import { BiEqualizer } from 'react-icons/bi'
 
 import AdvancedAudioPlayer from '../utility/advancedAudioPlayer'
+import LocalStorageManager from '../utility/storage'
 
 interface AudioSource {
     src: AdvancedAudioPlayer
@@ -36,6 +37,20 @@ interface VolumeControlProps {
 const VolumeControl = ({ sources }: VolumeControlProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false)
 
+    const storageManager = useRef<LocalStorageManager>(
+        new LocalStorageManager()
+    )
+
+    const updateVolumeForSource = (source: AudioSource, volume: number) => {
+        if (source.src.name === 'clock') {
+            storageManager.current.setClockVolume(volume)
+        } else if (source.src.name === 'gong') {
+            storageManager.current.setBellVolume(volume)
+        }
+
+        source.src.setVolume(volume)
+    }
+
     const sourceJSX = sources.map((source) => {
         return (
             <Flex
@@ -46,13 +61,13 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
             >
                 <Slider
                     aria-label='slider-ex-3'
-                    defaultValue={100}
+                    defaultValue={source.src.getVolume() * 100}
                     orientation='vertical'
                     minH='32'
                     width={'100%'}
                     height={'50px'}
                     marginBottom={'10px'}
-                    onChange={(v) => source.src.setVolume(v / 100)}
+                    onChange={(v) => updateVolumeForSource(source, v / 100)}
                 >
                     <SliderTrack bg='blue.200'>
                         <SliderFilledTrack />

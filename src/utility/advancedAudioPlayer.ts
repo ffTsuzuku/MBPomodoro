@@ -9,6 +9,7 @@ interface AdvancedAudioPlayerProps {
     src: string
     name?: string
     loop?: boolean
+    volume?: number
 }
 
 class AdvancedAudioPlayer {
@@ -16,12 +17,18 @@ class AdvancedAudioPlayer {
     playCount: number
     state: PlayerStates
     name: string
-    constructor({ src, loop = false, name }: AdvancedAudioPlayerProps) {
+    constructor({
+        src,
+        loop = false,
+        name,
+        volume = 100,
+    }: AdvancedAudioPlayerProps) {
         this.player = new Audio(src)
         this.player.loop = loop
         this.state = PlayerStates.Unplayed
         this.playCount = 0
         this.name = name ?? src
+        this.player.volume = volume
     }
 
     play() {
@@ -45,6 +52,10 @@ class AdvancedAudioPlayer {
         this.player.currentTime = 0
         this.state = PlayerStates.Ended
         this.playCount++
+    }
+
+    getVolume(): number {
+        return this.player.volume
     }
 
     addEventListener(

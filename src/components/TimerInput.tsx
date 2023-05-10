@@ -29,7 +29,6 @@ const TimerInput = ({
     const inputRef = useRef<HTMLInputElement>(null)
 
     const validateAndSetTime = (time: string) => {
-        console.log('time', time)
         // remove non numbers
         time = time.replace(/[^0-9]/g, '')
         // Cap it to 6 chars. The 7th char forces the first to be removed
