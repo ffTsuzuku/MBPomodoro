@@ -8,9 +8,7 @@ import AdvancedAudioPlayer, {
 
 import { Button, Flex, Input } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
-import VolumeControl, {
-    AudioSource,
-} from '../components/VolumeControl'
+import VolumeControl, { AudioSource } from '../components/VolumeControl'
 
 import PresetMenu from './PresetMenu'
 
@@ -28,14 +26,10 @@ const Timer = () => {
     const [timer, setTimer] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
-    const [timerState, setTimerState] = useState<TimerStates>(
-        TimerStates.Ended
-    )
-    const [audioSources, setAudioSources] = useState<AudioSource[]>(
-        []
-    )
+    const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
+    const [audioSources, setAudioSources] = useState<AudioSource[]>([])
 
-    const timerInterval = useRef<number|undefined>(undefined)
+    const timerInterval = useRef<number | undefined>(undefined)
     const timerRef = useRef<number>()
     const clockPlayer = useRef<AdvancedAudioPlayer>()
     const gongSound = useRef<AdvancedAudioPlayer>()
@@ -58,7 +52,6 @@ const Timer = () => {
     }
 
     const formatTime = () => {
-
         if (!userInput) {
             // When you focus the input it clears the user input.
             // So instead we showcase the prevUserInput
@@ -68,11 +61,11 @@ const Timer = () => {
             return '00h 00m 00s'
         }
 
-        // You're currently editting the time so show the changes. 
+        // You're currently editting the time so show the changes.
         if (timerFocused) {
             return formatUserInput(userInput, false)
         }
-        
+
         if (timerInterval.current && timerRef.current) {
             let seconds: number | string = timerRef.current
             const hours = Math.floor(seconds / 3600) // Calculate hours
@@ -80,9 +73,9 @@ const Timer = () => {
             const minutes = Math.floor(seconds / 60) // Calculate minutes
             seconds = (seconds % 60).toString().padStart(2, '0') // Get remaining seconds
 
-            let formatedString = '';
+            let formatedString = ''
             if (hours) formatedString += `${hours}h `
-            if (minutes) formatedString +=  `${minutes}m `
+            if (minutes) formatedString += `${minutes}m `
             formatedString += `${seconds}s`
             return formatedString
         }
@@ -205,10 +198,15 @@ const Timer = () => {
                 unPauseTime()
             }
         } else if (userInput) {
-            // Time was changed, end current count down. 
+            // Time was changed, end current count down.
             endTime()
         }
         setTimerFocused(false)
+    }
+
+    const applyPreset = (preset: string) => {
+        endTime()
+        setUserInput(preset)
     }
 
     const timerBtnStyles: CSSObject = {
@@ -325,13 +323,11 @@ const Timer = () => {
                 w={'100%'}
                 justifyContent='center'
                 fontSize={'5xl'}
-                color={ timerFocused ? 'gray.600' : 'gray.200'}
+                color={timerFocused ? 'gray.600' : 'gray.200'}
                 onClick={() => inputRef?.current?.focus()}
             >
                 {formatTime()}
-                <span className='blinkMe'>
-                    {timerFocused ? '|' : ''}
-                </span>
+                <span className='blinkMe'>{timerFocused ? '|' : ''}</span>
             </Flex>
             {ButtonsJSX}
             <Flex
@@ -343,7 +339,7 @@ const Timer = () => {
             >
                 <PresetMenu
                     presets={predefinedSchedule}
-                    onSelect={(preset: string) => setUserInput(preset)}
+                    onSelect={applyPreset}
                 />
                 <VolumeControl sources={audioSources} />
             </Flex>
