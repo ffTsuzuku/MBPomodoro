@@ -12,18 +12,21 @@ import {
     VStack,
 } from '@chakra-ui/react'
 import { MdOutlineSchedule } from 'react-icons/md'
-
-import { formatUserInput } from '../utility/time'
+import { Preset } from './Timer'
 
 interface PresetMenuInterface {
-    presets: string[]
-    onSelect: (preset: string) => any
+    presets: Preset[]
+    onSelect: (preset: Preset) => any
 }
 const PresetMenu = ({ presets, onSelect }: PresetMenuInterface) => {
     const PresetOptionsJSX = presets.map((preset) => {
         return (
-            <Flex onClick={() => onSelect(preset)} cursor={'pointer'}>
-                {formatUserInput(preset, true)}
+            <Flex
+                onClick={() => onSelect(preset)}
+                cursor={'pointer'}
+                key={preset.time.time}
+            >
+                {preset.time.format(true)}
             </Flex>
         )
     })

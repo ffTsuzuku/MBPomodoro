@@ -12,7 +12,12 @@ import VolumeControl, { AudioSource } from '../components/VolumeControl'
 
 import PresetMenu from './PresetMenu'
 
-import { formatUserInput, parseUserInputIntoNumbers } from '../utility/time'
+import { TimeString } from '../utility/time'
+
+interface Preset {
+    time: TimeString
+    deletable: boolean
+}
 
 const Timer = () => {
     enum TimerStates {
@@ -20,14 +25,22 @@ const Timer = () => {
         Paused,
         Ended,
     }
-    const predefinedSchedule: string[] = ['500', '3000']
-    const [userInput, setUserInput] = useState<string>(predefinedSchedule[0])
-    const [prevUserInput, setPrevUserInput] = useState<string>('')
+    const defaultPresets: Preset[] = [
+        { time: new TimeString('500'), deletable: false },
+        { time: new TimeString('3000'), deletable: false },
+    ]
+    const [userInput, setUserInput] = useState<TimeString>(
+        defaultPresets[0].time
+    )
+    const [prevUserInput, setPrevUserInput] = useState<TimeString>(
+        new TimeString('0')
+    )
     const [timer, setTimer] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
     const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
     const [audioSources, setAudioSources] = useState<AudioSource[]>([])
+    const [presets, setPresets] = useState<Preset[]>(defaultPresets)
 
     const timerInterval = useRef<number | undefined>(undefined)
     const timerRef = useRef<number>()
@@ -48,22 +61,22 @@ const Timer = () => {
         // Cap it to 6 chars. The 7th char forces the first to be removed
         time = time.length === 7 ? time.slice(1, 7) : time.slice(0, 6)
 
-        setUserInput(time)
+        setUserInput(new TimeString(time))
     }
 
     const formatTime = () => {
         if (!userInput) {
             // When you focus the input it clears the user input.
             // So instead we showcase the prevUserInput
-            if (prevUserInput) {
-                return formatUserInput(prevUserInput, !timerFocused)
+            if (prevUserInput.time !== prevUserInput.defaultVal) {
+                return prevUserInput.format(!timerFocused)
             }
             return '00h 00m 00s'
         }
 
         // You're currently editting the time so show the changes.
         if (timerFocused) {
-            return formatUserInput(userInput, false)
+            return userInput.format(false)
         }
 
         if (timerInterval.current && timerRef.current) {
@@ -80,7 +93,7 @@ const Timer = () => {
             return formatedString
         }
 
-        return formatUserInput(userInput, !timerFocused)
+        return userInput.format(!timerFocused)
     }
 
     // puts all audio sources in a paused state
@@ -101,7 +114,8 @@ const Timer = () => {
     const playTikTokNoise = () => {
         if (
             clockPlayer.current?.state === PlayerStates.Paused ||
-            clockPlayer.current?.state === PlayerStates.Unplayed
+            clockPlayer.current?.state === PlayerStates.Unplayed ||
+            clockPlayer.current?.state === PlayerStates.Ended
         ) {
             clockPlayer.current?.play()
         }
@@ -119,7 +133,7 @@ const Timer = () => {
 
     // sets the timer state and its correspondingref to what the user entered.
     const setTimerToUserInput = () => {
-        const [hours, minutes, seconds] = parseUserInputIntoNumbers(userInput)
+        const [hours, minutes, seconds] = userInput.parseTimeStringIntoNumbers()
         setTimer(hours * 60 * 60 + minutes * 60 + seconds)
         timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
     }
@@ -176,10 +190,9 @@ const Timer = () => {
     }
 
     const onFocusInput = () => {
-        console.log('ran')
         setPrevUserInput(userInput)
         setTimerFocused(true)
-        setUserInput('')
+        setUserInput(new TimeString('0'))
         if (timerInterval.current) {
             pauseTime()
         }
@@ -188,9 +201,9 @@ const Timer = () => {
     const onBlurInput = () => {
         // If they exited the input without making changes revert
         // to what it used to be.
-        if (!userInput) {
+        if (userInput.time === userInput.defaultVal) {
             setUserInput(prevUserInput)
-            setPrevUserInput('')
+            setPrevUserInput(new TimeString('0'))
 
             // This mean the timer was running before we focused
             // To start it again.
@@ -204,9 +217,9 @@ const Timer = () => {
         setTimerFocused(false)
     }
 
-    const applyPreset = (preset: string) => {
+    const applyPreset = (preset: Preset) => {
         endTime()
-        setUserInput(preset)
+        setUserInput(new TimeString(preset.time.time))
     }
 
     const timerBtnStyles: CSSObject = {
@@ -314,7 +327,7 @@ const Timer = () => {
                 onChange={(e) => validateAndSetTime(e.target.value)}
                 onKeyDown={(e) => startTimeIfEntered(e)}
                 variant='unstyled'
-                value={userInput}
+                value={userInput.time}
                 ref={inputRef}
                 w={'1px'}
                 h={'1px'}
@@ -337,10 +350,7 @@ const Timer = () => {
                 mr={5}
                 mb={5}
             >
-                <PresetMenu
-                    presets={predefinedSchedule}
-                    onSelect={applyPreset}
-                />
+                <PresetMenu presets={presets} onSelect={applyPreset} />
                 <VolumeControl sources={audioSources} />
             </Flex>
         </Flex>
@@ -348,3 +358,5 @@ const Timer = () => {
 }
 
 export default Timer
+
+export type { Preset }
