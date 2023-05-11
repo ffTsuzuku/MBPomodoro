@@ -88,7 +88,12 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
     })
 
     return (
-        <Popover placement='top' onOpen={onOpen} onClose={onClose}>
+        <Popover
+            placement='top'
+            onOpen={onOpen}
+            onClose={onClose}
+            isOpen={isOpen}
+        >
             <PopoverTrigger>
                 <Flex>
                     <FiVolume2

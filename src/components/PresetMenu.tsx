@@ -98,6 +98,7 @@ const PresetMenu = ({
 
     return (
         <Popover
+            isOpen={isOpen}
             placement='top'
             initialFocusRef={inputRef.current?.elem}
             onOpen={openMenu}

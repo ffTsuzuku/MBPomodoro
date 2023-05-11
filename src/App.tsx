@@ -25,6 +25,7 @@ function App() {
                 justifyContent={'center'}
                 alignItems={'center'}
                 overflow={'hidden'}
+                className='prevent-select'
             >
                 <Grid
                     justifyContent={'center'}
