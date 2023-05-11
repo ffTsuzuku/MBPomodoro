@@ -16,6 +16,8 @@ import {
     SliderThumb,
     SliderTrack,
     useDisclosure,
+    Icon,
+    IconButton,
 } from '@chakra-ui/react'
 import { useState, useRef } from 'react'
 import { IconType } from 'react-icons'
@@ -95,13 +97,13 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
             isOpen={isOpen}
         >
             <PopoverTrigger>
-                <Flex>
-                    <FiVolume2
-                        size={'30px'}
-                        cursor={'pointer'}
-                        color={'white'}
-                    />
-                </Flex>
+                <IconButton
+                    icon={<FiVolume2 size={'32px'} />}
+                    aria-label='Volume'
+                    backgroundColor={'transparent'}
+                    color={'white'}
+                    _hover={{ backgroundColor: 'transparent' }}
+                />
             </PopoverTrigger>
             <Portal>
                 <PopoverContent>
@@ -126,6 +128,31 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
             </Portal>
         </Popover>
     )
+
+    // return (
+    //     <Popover>
+    //         <PopoverTrigger>
+    //             <IconButton
+    //                 icon={<FiVolume2 size={'32px'} />}
+    //                 aria-label='Volume'
+    //                 backgroundColor={'transparent'}
+    //                 color={'white'}
+    //                 _hover={{ backgroundColor: 'transparent' }}
+    //             />
+    //         </PopoverTrigger>
+    //         <Portal>
+    //             <PopoverContent>
+    //                 <PopoverArrow />
+    //                 <PopoverHeader>Header</PopoverHeader>
+    //                 <PopoverCloseButton />
+    //                 <PopoverBody>
+    //                     <Button colorScheme='blue'>Button</Button>
+    //                 </PopoverBody>
+    //                 <PopoverFooter>This is the footer</PopoverFooter>
+    //             </PopoverContent>
+    //         </Portal>
+    //     </Popover>
+    // )
 }
 
 export default VolumeControl
