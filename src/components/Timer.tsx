@@ -6,16 +6,9 @@ import AdvancedAudioPlayer, {
     PlayerStates,
 } from '../utility/advancedAudioPlayer'
 
-import {
-    Button,
-    Flex,
-    Input,
-    localStorageManager,
-} from '@chakra-ui/react'
+import { Button, Flex, Input, localStorageManager } from '@chakra-ui/react'
 import { CSSObject } from '@emotion/react'
-import VolumeControl, {
-    AudioSource,
-} from '../components/VolumeControl'
+import VolumeControl, { AudioSource } from '../components/VolumeControl'
 
 import PresetMenu from './PresetMenu'
 
@@ -47,12 +40,8 @@ const Timer = () => {
     const [timer, setTimer] = useState<number>()
     const inputRef = useRef<HTMLInputElement>(null)
     const [timerFocused, setTimerFocused] = useState<boolean>()
-    const [timerState, setTimerState] = useState<TimerStates>(
-        TimerStates.Ended
-    )
-    const [audioSources, setAudioSources] = useState<AudioSource[]>(
-        []
-    )
+    const [timerState, setTimerState] = useState<TimerStates>(TimerStates.Ended)
+    const [audioSources, setAudioSources] = useState<AudioSource[]>([])
     const [presets, setPresets] = useState<Preset[]>(
         LocalStorageManager.fetchPresets()
     )
@@ -151,8 +140,7 @@ const Timer = () => {
 
     // sets the timer state and its correspondingref to what the user entered.
     const setTimerToUserInput = () => {
-        const [hours, minutes, seconds] =
-            userInput.parseTimeStringIntoNumbers()
+        const [hours, minutes, seconds] = userInput.parseTimeStringIntoNumbers()
         setTimer(hours * 60 * 60 + minutes * 60 + seconds)
         timerRef.current = hours * 60 * 60 + minutes * 60 + seconds
     }
@@ -257,31 +245,21 @@ const Timer = () => {
     }
     let ButtonsJSX = (
         <Flex w={'100%'} justifyContent={'center'}>
-            <Button onClick={startTime} style={timerBtnStyles}>
-                {'Start'}
-            </Button>
+            <Button onClick={startTime}>{'Start'}</Button>
         </Flex>
     )
     if (timerState === TimerStates.Started) {
         ButtonsJSX = (
             <Flex w={'100%'} justifyContent={'center'}>
-                <Button onClick={pauseTime} style={timerBtnStyles}>
-                    {'Pause'}
-                </Button>
-                <Button onClick={resetTime} style={timerBtnStyles}>
-                    {'Reset'}
-                </Button>
+                <Button onClick={pauseTime}>{'Pause'}</Button>
+                <Button onClick={resetTime}>{'Reset'}</Button>
             </Flex>
         )
     } else if (timerState === TimerStates.Paused && userInput) {
         ButtonsJSX = (
             <Flex w={'100%'} justifyContent={'center'}>
-                <Button onClick={unPauseTime} style={timerBtnStyles}>
-                    {'Resume'}
-                </Button>
-                <Button onClick={resetTime} style={timerBtnStyles}>
-                    {'Reset'}
-                </Button>
+                <Button onClick={unPauseTime}>{'Resume'}</Button>
+                <Button onClick={resetTime}>{'Reset'}</Button>
             </Flex>
         )
     }
@@ -366,9 +344,7 @@ const Timer = () => {
                 onClick={() => inputRef?.current?.focus()}
             >
                 {formatTime()}
-                <span className='blinkMe'>
-                    {timerFocused ? '|' : ''}
-                </span>
+                <span className='blinkMe'>{timerFocused ? '|' : ''}</span>
             </Flex>
             {ButtonsJSX}
             <Flex
