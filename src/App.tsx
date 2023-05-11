@@ -13,7 +13,7 @@ import './App.css'
 
 function App() {
     const mainWidth = useBreakpointValue(
-        { base: '80%', md: '50%' },
+        { base: '80%', md: '70%', lg: '50%' },
         { ssr: false }
     )
     return (
