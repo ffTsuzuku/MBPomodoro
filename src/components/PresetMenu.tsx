@@ -11,12 +11,13 @@ import {
     Portal,
     VStack,
     Text,
+    useDisclosure,
 } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MdOutlineSchedule, MdRemove } from 'react-icons/md'
 import { TimeString } from '../utility/time'
 import { Preset } from './Timer'
-import TimerInput from './TimerInput'
+import TimerInput, { TimerInputRef } from './TimerInput'
 
 interface PresetMenuInterface {
     presets: Preset[]
@@ -28,18 +29,27 @@ const PresetMenu = ({
     onSelect,
     updatePresets,
 }: PresetMenuInterface) => {
-    const [newPreset, setNewPreset] = useState<TimeString>(new TimeString('0'))
+    const [newPreset, setNewPreset] = useState<TimeString>(
+        new TimeString('0')
+    )
     const [prevNewPreset, setPrevNewPreset] = useState<TimeString>(
         new TimeString('0')
     )
+    const { onOpen, onClose, isOpen } = useDisclosure()
+
+    const inputRef = useRef<TimerInputRef>(null)
 
     const onSubmitPresetVal = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             const exist =
-                presets.filter((preset) => preset.time.time === newPreset.time)
-                    .length > 0
+                presets.filter(
+                    (preset) => preset.time.time === newPreset.time
+                ).length > 0
             if (exist) return
-            updatePresets([...presets, { time: newPreset, deletable: true }])
+            updatePresets([
+                ...presets,
+                { time: newPreset, deletable: true },
+            ])
             setNewPreset(new TimeString('0'))
         }
     }
@@ -76,8 +86,23 @@ const PresetMenu = ({
         )
     })
 
+    const closeMenu = () => {
+        onClose()
+        setNewPreset(new TimeString('0'))
+    }
+
+    const openMenu = () => {
+        onOpen()
+        inputRef.current?.focusInput()
+    }
+
     return (
-        <Popover placement='top'>
+        <Popover
+            placement='top'
+            initialFocusRef={inputRef.current?.elem}
+            onOpen={openMenu}
+            onClose={closeMenu}
+        >
             <PopoverTrigger>
                 <Flex mr={3}>
                     <MdOutlineSchedule
@@ -108,6 +133,7 @@ const PresetMenu = ({
                             prevUserInput={prevNewPreset}
                             updatePrevUserInput={setPrevNewPreset}
                             onKeyDown={onSubmitPresetVal}
+                            ref={inputRef}
                         />
                     </PopoverBody>
                     <PopoverFooter
