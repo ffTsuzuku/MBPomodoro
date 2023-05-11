@@ -1,9 +1,21 @@
 import './App.css'
-import { Box, Button, Flex, Grid, Input, Text } from '@chakra-ui/react'
+import {
+    Box,
+    Button,
+    Flex,
+    Grid,
+    Input,
+    Text,
+    useBreakpointValue,
+} from '@chakra-ui/react'
 import Timer from './components/Timer'
 import './App.css'
 
 function App() {
+    const mainWidth = useBreakpointValue(
+        { base: '80%', md: '50%' },
+        { ssr: false }
+    )
     return (
         <div className='App'>
             <Flex
@@ -17,7 +29,7 @@ function App() {
                 <Grid
                     justifyContent={'center'}
                     alignItems={'center'}
-                    w={'50%'}
+                    w={mainWidth}
                     h={'50%'}
                     shadow={'2xl'}
                     borderRadius={'10px'}
