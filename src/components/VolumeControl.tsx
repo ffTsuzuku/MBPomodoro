@@ -15,6 +15,7 @@ import {
     SliderFilledTrack,
     SliderThumb,
     SliderTrack,
+    useDisclosure,
 } from '@chakra-ui/react'
 import { useState, useRef } from 'react'
 import { IconType } from 'react-icons'
@@ -35,13 +36,16 @@ interface VolumeControlProps {
 }
 
 const VolumeControl = ({ sources }: VolumeControlProps) => {
-    const [isOpen, setIsOpen] = useState<boolean>(false)
+    const { onOpen, onClose, isOpen } = useDisclosure()
 
     const storageManager = useRef<LocalStorageManager>(
         new LocalStorageManager()
     )
 
-    const updateVolumeForSource = (source: AudioSource, volume: number) => {
+    const updateVolumeForSource = (
+        source: AudioSource,
+        volume: number
+    ) => {
         if (source.src.name === 'clock') {
             storageManager.current.setClockVolume(volume)
         } else if (source.src.name === 'gong') {
@@ -67,7 +71,9 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
                     width={'100%'}
                     height={'50px'}
                     marginBottom={'10px'}
-                    onChange={(v) => updateVolumeForSource(source, v / 100)}
+                    onChange={(v) =>
+                        updateVolumeForSource(source, v / 100)
+                    }
                 >
                     <SliderTrack bg='blue.200'>
                         <SliderFilledTrack />
@@ -82,36 +88,37 @@ const VolumeControl = ({ sources }: VolumeControlProps) => {
     })
 
     return (
-        <Popover placement='top'>
+        <Popover placement='top' onOpen={onOpen} onClose={onClose}>
             <PopoverTrigger>
                 <Flex>
                     <FiVolume2
                         size={'30px'}
                         cursor={'pointer'}
-                        onClick={() => setIsOpen(!isOpen)}
                         color={'white'}
                     />
                 </Flex>
             </PopoverTrigger>
-            <PopoverContent>
-                <PopoverArrow />
-                <PopoverCloseButton />
-                <PopoverBody
-                    display={'flex'}
-                    height={'200px'}
-                    alignItems={'flex-end'}
-                    justifyContent={'space-around'}
-                >
-                    {sourceJSX}
-                </PopoverBody>
-                <PopoverFooter
-                    textAlign={'center'}
-                    fontWeight={'bold'}
-                    color={'blue.300'}
-                >
-                    Volume Control
-                </PopoverFooter>
-            </PopoverContent>
+            <Portal>
+                <PopoverContent>
+                    <PopoverArrow />
+                    <PopoverCloseButton />
+                    <PopoverBody
+                        display={'flex'}
+                        height={'200px'}
+                        alignItems={'flex-end'}
+                        justifyContent={'space-around'}
+                    >
+                        {sourceJSX}
+                    </PopoverBody>
+                    <PopoverFooter
+                        textAlign={'center'}
+                        fontWeight={'bold'}
+                        color={'blue.300'}
+                    >
+                        Volume Control
+                    </PopoverFooter>
+                </PopoverContent>
+            </Portal>
         </Popover>
     )
 }
