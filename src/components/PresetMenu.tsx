@@ -12,6 +12,7 @@ import {
     VStack,
     Text,
     useDisclosure,
+    IconButton,
 } from '@chakra-ui/react'
 import { useEffect, useRef, useState } from 'react'
 import { MdOutlineSchedule, MdRemove } from 'react-icons/md'
@@ -29,9 +30,7 @@ const PresetMenu = ({
     onSelect,
     updatePresets,
 }: PresetMenuInterface) => {
-    const [newPreset, setNewPreset] = useState<TimeString>(
-        new TimeString('0')
-    )
+    const [newPreset, setNewPreset] = useState<TimeString>(new TimeString('0'))
     const [prevNewPreset, setPrevNewPreset] = useState<TimeString>(
         new TimeString('0')
     )
@@ -42,14 +41,10 @@ const PresetMenu = ({
     const onSubmitPresetVal = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             const exist =
-                presets.filter(
-                    (preset) => preset.time.time === newPreset.time
-                ).length > 0
+                presets.filter((preset) => preset.time.time === newPreset.time)
+                    .length > 0
             if (exist) return
-            updatePresets([
-                ...presets,
-                { time: newPreset, deletable: true },
-            ])
+            updatePresets([...presets, { time: newPreset, deletable: true }])
             setNewPreset(new TimeString('0'))
         }
     }
@@ -105,13 +100,13 @@ const PresetMenu = ({
             onClose={closeMenu}
         >
             <PopoverTrigger>
-                <Flex mr={3}>
-                    <MdOutlineSchedule
-                        size={'28px'}
-                        color={'white'}
-                        cursor={'pointer'}
-                    />
-                </Flex>
+                <IconButton
+                    icon={<MdOutlineSchedule size={'32px'} />}
+                    aria-label='Volume'
+                    backgroundColor={'transparent'}
+                    color={'white'}
+                    _hover={{ backgroundColor: 'transparent' }}
+                />
             </PopoverTrigger>
             <Portal>
                 <PopoverContent>
